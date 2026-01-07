@@ -37,38 +37,27 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v3
 
-      # AWS 認証情報を設定
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v3
+      # GCP 認証 (Workload Identity Federation)
+      - id: auth
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
         with:
-          role-to-assume: arn:aws:iam::${{ "${{" }} secrets.AWS_ACCOUNT_ID }}:role/GitHubActionsPushECRRole
-          role-session-name: GitHubActionsSession
-          aws-region: ${{ "${{" }} secrets.AWS_REGION }}
+          workload_identity_provider: 'projects/${{ values.projectNumber }}/locations/global/workloadIdentityPools/poc-github-actions-pool/providers/poc-github-provider'
+          service_account: 'rhdh-sa-gcp@${{ values.projectId }}.iam.gserviceaccount.com'
 
-      # ECR へのログイン (出力で registry URL を取得)
-      - name: Login to Amazon ECR
-        id: ecr-login
-        uses: aws-actions/amazon-ecr-login@v1
-        with:
-          mask-password: 'true'
+      # Artifact Registry 認証
+      - name: Docker Auth
+        run: gcloud auth configure-docker asia-northeast1-docker.pkg.dev
 
-      # リポジトリをチェックし、存在しなければ作成
-      - name: Create ECR repository if not exists
+      # ビルド & プッシュ (GCP Artifact Registry)
+      - name: Build and Push Docker image
         run: |
-          REPOSITORY_NAME="${{ values.app_name }}"
-          if ! aws ecr describe-repositories --repository-names "$REPOSITORY_NAME" > /dev/null 2>&1; then
-            aws ecr create-repository --repository-name "$REPOSITORY_NAME"
-          fi
-
-      # Docker イメージのビルド
-      - name: Build Docker image
-        run: |
-          docker build -t ${{ "${{" }} steps.ecr-login.outputs.registry }}/${{ values.app_name }}:${{ "${{" }} github.sha }} .
-
-      # ECR にプッシュ
-      - name: Push Docker image
-        run: |
-          docker push ${{ "${{" }} steps.ecr-login.outputs.registry }}/${{ values.app_name }}:${{ "${{" }} github.sha }}
+          # レジストリURLの定義
+          REGISTRY="asia-northeast1-docker.pkg.dev/${{ values.projectId }}/poc-rhdh-repository"
+          IMAGE_TAG="${{ values.app_name }}:${{ "${{" }} github.sha }}"
+          
+          docker build -t $REGISTRY/$IMAGE_TAG .
+          docker push $REGISTRY/$IMAGE_TAG
 
   update_manifests:
     runs-on: ubuntu-latest
@@ -99,9 +88,8 @@ jobs:
       - name: Update Manifests
         run: |
           cd ${{ values.git_repo_name }}-manifest/kustomize/overlays/dev
-          kustomize edit set image ___IMAGE_URL___@___IMAGE_DIGEST___=${{ "${{" }} secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ "${{" }} secrets.AWS_REGION }}.amazonaws.com/${{ values.app_name }}:${{ "${{" }} github.sha }}
-          sed -i "s|___AWS_ACCOUNT_ID___|${{ "${{" }} secrets.AWS_ACCOUNT_ID }}|g" ../../base/ecr-secret.yaml
-          sed -i "s|___AWS_REGION___|${{ "${{" }} secrets.AWS_REGION }}|g" ../../base/ecr-secret.yaml
+          IMAGE_URL="asia-northeast1-docker.pkg.dev/${{ values.projectId }}/poc-rhdh-repository/${{ values.app_name }}:${{ "${{" }} github.sha }}"
+          kustomize edit set image ___IMAGE_URL___=$IMAGE_URL
 
       - name: Commit and push changes
         run: |
