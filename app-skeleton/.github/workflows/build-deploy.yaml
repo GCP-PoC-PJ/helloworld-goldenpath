@@ -89,17 +89,12 @@ jobs:
           git diff-index --quiet HEAD || git commit -m "Update manifests to image ${{ github.sha }}"
           git push origin HEAD:develop
 
-      - name: Commit and push changes
+      - name: Build and Push Docker image
         run: |
-          cd ${{ values.git_repo_name }}-manifest
-
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          git add .
-          git diff-index --quiet HEAD || git commit -m "Update kustomize manifests for commit ${{ github.sha }}"
-
-          git push origin HEAD:develop
+          REGISTRY="asia-northeast1-docker.pkg.dev/${{ values.projectId }}/poc-rhdh-repository"
+          IMAGE_TAG="${{ values.app_name }}:latest"
+          docker build -t $REGISTRY/$IMAGE_TAG .
+          docker push $REGISTRY/$IMAGE_TAG
   
   deploy_application:
     runs-on: ubuntu-latest
