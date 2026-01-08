@@ -69,11 +69,25 @@ jobs:
 
       - name: Update Manifests
         run: |
-          TARGET_DIR="${{ values.git_repo_name }}-manifest/kustomize"
+          # 1. まずディレクトリに移動する
+          cd ${{ values.git_repo_name }}-manifest
+          
+          # 2. 移動した先(カレントディレクトリ)を起点に全置換をかける
           IMAGE_URL="asia-northeast1-docker.pkg.dev/${{ values.projectId }}/poc-rhdh-repository/${{ values.app_name }}:${{ github.sha }}"
-          find $TARGET_DIR -name "*.yaml" -type f -exec sed -i "s|___IMAGE_URL___|$IMAGE_URL|g" {} +
-          find $TARGET_DIR -name "*.yaml" -type f -exec sed -i "s|@___IMAGE_DIGEST___||g" {} +
-          echo "Updated all manifest files in $TARGET_DIR with: $IMAGE_URL"
+          
+          echo "Updating manifests with image: $IMAGE_URL"
+          
+          # カレントディレクトリ配下の全てのYAMLを置換
+          find . -name "*.yaml" -type f -exec sed -i "s|___IMAGE_URL___|$IMAGE_URL|g" {} +
+          find . -name "*.yaml" -type f -exec sed -i "s|@___IMAGE_DIGEST___||g" {} +
+          
+          # 3. そのままコミットとプッシュを行う
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add .
+          git diff-index --quiet HEAD || git commit -m "Update manifests to image ${{ github.sha }}"
+          git push origin HEAD:develop
 
       - name: Commit and push changes
         run: |
