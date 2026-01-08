@@ -15,12 +15,22 @@ spec:
       required:
         - app_name
         - owner
+        - projectId
+        - projectNumber
       properties:
         app_name:
           title: アプリケーション名
           description: 作成するアプリ名を指定してください。
           type: string
           default: "helloworld-gp"
+        projectId:
+          title: GCP Project ID
+          type: string
+          default: "your-gcp-project-id"
+        projectNumber:
+          title: GCP Project Number
+          type: string
+          description: "GCPコンソールで確認できる数字のみのID"
         owner:
           title: オーナー
           type: string
@@ -52,7 +62,7 @@ spec:
           title: GitHub Organization名
           description: GitHubリポジトリを生成するGitHub Organization名を入力してください。
           type: string
-          default: rhdh-practice
+          default: GCP-PoC-PJ
   steps:
     - id: fetch-app
       name: Fetch App skeleton 
@@ -65,6 +75,8 @@ spec:
           git_repo_name: ${{ parameters.git_repo_name }}
           git_host_url: ${{ parameters.git_host_url }}
           git_owner_name: ${{ parameters.git_owner_name }}
+          projectId: ${{ parameters.projectId }}
+          projectNumber: ${{ parameters.projectNumber }}
         targetPath: ./app-tenant
 
     - id: fetch-manifest
@@ -78,6 +90,7 @@ spec:
           git_repo_name: ${{ parameters.git_repo_name }}
           git_host_url: ${{ parameters.git_host_url }}
           git_owner_name: ${{ parameters.git_owner_name }}
+          projectId: ${{ parameters.projectId }}
         targetPath: ./manifest-tenant
 
     - id: publish-app
