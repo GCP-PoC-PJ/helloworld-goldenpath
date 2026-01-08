@@ -71,8 +71,9 @@ jobs:
         run: |
           TARGET_DIR="${{ values.git_repo_name }}-manifest/kustomize"
           IMAGE_URL="asia-northeast1-docker.pkg.dev/${{ values.projectId }}/poc-rhdh-repository/${{ values.app_name }}:${{ github.sha }}"
-          find $TARGET_DIR -name "*.yaml" -type f -exec sed -i "s|___IMAGE_URL___|$IMAGE_URL|g" {} +
-          echo "Updated all manifests in $TARGET_DIR with: $IMAGE_URL"
+          find $TARGET_DIR -type f -exec sed -i "s|___IMAGE_URL___|$IMAGE_URL|g" {} +
+          find $TARGET_DIR -type f -exec sed -i "s|@___IMAGE_DIGEST___||g" {} +
+          echo "Updated all manifests. No more placeholders left."
 
       - name: Commit and push changes
         run: |
