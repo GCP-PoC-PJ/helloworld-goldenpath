@@ -34,9 +34,9 @@ jobs:
       # ビルド & プッシュ (GCP Artifact Registry)
       - name: Build and Push Docker image
         run: |
-          # レジストリURLの定義
           REGISTRY="asia-northeast1-docker.pkg.dev/${{ values.projectId }}/poc-rhdh-repository"
-          IMAGE_TAG="${{ values.app_name }}:${{ "${{" }} github.sha }}"
+          # タグを latest に固定してプッシュ
+          IMAGE_TAG="${{ values.app_name }}:latest"
           
           docker build -t $REGISTRY/$IMAGE_TAG .
           docker push $REGISTRY/$IMAGE_TAG
@@ -89,12 +89,17 @@ jobs:
           git diff-index --quiet HEAD || git commit -m "Update manifests to image ${{ github.sha }}"
           git push origin HEAD:develop
 
-      - name: Build and Push Docker image
+      - name: Commit and push changes
         run: |
-          REGISTRY="asia-northeast1-docker.pkg.dev/${{ values.projectId }}/poc-rhdh-repository"
-          IMAGE_TAG="${{ values.app_name }}:latest"
-          docker build -t $REGISTRY/$IMAGE_TAG .
-          docker push $REGISTRY/$IMAGE_TAG
+          cd ${{ values.git_repo_name }}-manifest
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add .
+          git diff-index --quiet HEAD || git commit -m "Update kustomize manifests for commit ${{ github.sha }}"
+
+          git push origin HEAD:develop
   
   deploy_application:
     runs-on: ubuntu-latest
@@ -114,4 +119,3 @@ jobs:
           sleep 15
           argocd app sync ${{ values.app_name }} --revision develop
           argocd app wait ${{ values.app_name }} --health
-
