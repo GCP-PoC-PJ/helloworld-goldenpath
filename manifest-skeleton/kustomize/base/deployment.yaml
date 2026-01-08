@@ -15,7 +15,7 @@ spec:
         app: ${{ values.app_name }}
     spec:
       containers:
-      - image: ___IMAGE_URL___@___IMAGE_DIGEST___
+      - image: ___IMAGE_URL___
         name: ${{ values.app_name }}
         ports:
         - containerPort: 3000
