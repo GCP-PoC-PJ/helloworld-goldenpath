@@ -8,5 +8,4 @@ resources:
   - deployment.yaml
   - service.yaml
   - route.yaml
-  - ecr-secret.yaml
   - app-sa.yaml
