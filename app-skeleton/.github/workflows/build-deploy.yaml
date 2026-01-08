@@ -2,9 +2,10 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [develop]
-  pull_request:
-    branches: [develop]
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
 
 jobs:
   build_and_push:
@@ -42,7 +43,7 @@ jobs:
 
   update_manifests:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop'
+    if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'
     needs: [build_and_push]
     steps:
       - name: Create token for manifest repository
@@ -86,7 +87,7 @@ jobs:
   
   deploy_application:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/develop'
+    if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main'
     needs: [update_manifests]
     steps:
       - name: Install ArgoCD CLI
