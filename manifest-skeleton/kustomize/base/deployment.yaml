@@ -15,7 +15,7 @@ spec:
         app: ${{ values.app_name }}
     spec:
       containers:
-      - image: asia-northeast1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/poc-rhdh-repository/${{ values.app_name }}:latest
+      - image: asia-northeast1-docker.pkg.dev/${{ values.projectId }}/poc-rhdh-repository/${{ values.app_name }}:latest
         name: ${{ values.app_name }}
         ports:
         - containerPort: 3000
