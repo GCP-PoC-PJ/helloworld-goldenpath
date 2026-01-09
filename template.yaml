@@ -30,7 +30,7 @@ spec:
         projectNumber:
           title: GCP Project Number
           type: string
-          description: "397401482938"
+          default: "397401482938"
         owner:
           title: オーナー
           type: string
