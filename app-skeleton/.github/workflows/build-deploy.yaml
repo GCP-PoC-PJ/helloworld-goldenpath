@@ -24,8 +24,8 @@ jobs:
         name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          workload_identity_provider: 'projects/${{ secrets.GCP_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/poc-github-actions-pool/providers/poc-github-provider'
-          service_account: 'rhdh-sa-gcp@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com'
+          workload_identity_provider: 'projects/${{ values.projectNumber }}/locations/global/workloadIdentityPools/poc-github-actions-pool/providers/poc-github-provider'
+          service_account: 'rhdh-sa-gcp@${{ values.projectId }}.iam.gserviceaccount.com'
 
       # Artifact Registry 認証
       - name: Docker Auth
@@ -34,7 +34,7 @@ jobs:
       # ビルド & プッシュ (GCP Artifact Registry)
       - name: Build and Push Docker image
         run: |
-          REGISTRY="asia-northeast1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/poc-rhdh-repository"
+          REGISTRY="asia-northeast1-docker.pkg.dev/${{ values.projectId }}/poc-rhdh-repository"
           # タグを latest に固定してプッシュ
           IMAGE_TAG="${{ values.app_name }}:latest"
           
@@ -73,7 +73,7 @@ jobs:
           cd ${{ values.git_repo_name }}-manifest
           
           # 2. 移動した先(カレントディレクトリ)を起点に全置換をかける
-          IMAGE_URL="asia-northeast1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/poc-rhdh-repository/${{ values.app_name }}:${{ github.sha }}"
+          IMAGE_URL="asia-northeast1-docker.pkg.dev/${{ values.projectId }}/poc-rhdh-repository/${{ values.app_name }}:${{ github.sha }}"
           
           echo "Updating manifests with image: $IMAGE_URL"
           
