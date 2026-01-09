@@ -23,14 +23,6 @@ spec:
           description: 作成するアプリ名を指定してください。
           type: string
           default: "helloworld-gp"
-        projectId:
-          title: GCP Project ID
-          type: string
-          default: "your-gcp-project-id"
-        projectNumber:
-          title: GCP Project Number
-          type: string
-          description: "GCPコンソールで確認できる数字のみのID"
         owner:
           title: オーナー
           type: string
@@ -75,8 +67,6 @@ spec:
           git_repo_name: ${{ parameters.git_repo_name }}
           git_host_url: ${{ parameters.git_host_url }}
           git_owner_name: ${{ parameters.git_owner_name }}
-          projectId: ${{ parameters.projectId }}
-          projectNumber: ${{ parameters.projectNumber }}
         targetPath: ./app-tenant
 
     - id: fetch-manifest
@@ -90,7 +80,6 @@ spec:
           git_repo_name: ${{ parameters.git_repo_name }}
           git_host_url: ${{ parameters.git_host_url }}
           git_owner_name: ${{ parameters.git_owner_name }}
-          projectId: ${{ parameters.projectId }}
         targetPath: ./manifest-tenant
 
     - id: publish-app
