@@ -15,8 +15,6 @@ spec:
       required:
         - app_name
         - owner
-        - projectId
-        - projectNumber
       properties:
         app_name:
           title: アプリケーション名
